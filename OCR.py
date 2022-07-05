@@ -8,6 +8,8 @@ try:
     import glob
     import fitz
     import os
+    from openpyxl import Workbook
+    from openpyxl.styles import Alignment
 
     pytesseract.pytesseract.tesseract_cmd = 'C:\Program Files\Tesseract-OCR\\tesseract.exe'
 
@@ -42,7 +44,8 @@ class Reader:
                     self.ret = self.pull(add)
                     print('found it!')
                     self.over = True
-                    print(self.ret)
+                    self.excelload(self.ret)
+                    # print(self.ret)
 
             os.remove(file)
 
@@ -67,6 +70,18 @@ class Reader:
         if parabreak != -1:
             chunk = slice[:parabreak]
             return chunk
+
+    def excelload(self, input):
+        wb = Workbook()
+        dest = 'example.xlsx'
+
+        ws1 = wb.active
+        ws1.title = 'Assignability Clauses'
+
+        ws1.column_dimensions['B'].width = 150
+        ws1['B2'].alignment = Alignment(wrapText=True)
+        ws1.cell(column=2, row=2, value=input)
+        wb.save(filename=dest)
 
 if __name__ == '__main__':
     test = Reader('assignability')

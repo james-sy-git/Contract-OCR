@@ -1,13 +1,13 @@
 '''
 OCR Implementation using Tesseract and Open CV
 '''
-
 try:
     from PIL import Image
     import pytesseract
     import cv2
     import glob
     import fitz
+    import os
 
     pytesseract.pytesseract.tesseract_cmd = 'C:\Program Files\Tesseract-OCR\\tesseract.exe'
 
@@ -16,13 +16,13 @@ except ImportError as i:
 
 class Reader:
 
-    def __init__(self, filename):
-        self.cache = ''
-        self.convert()
-        self.files = glob.glob(r'C:\\Users\\jsy13\Desktop\\OCRScr\\' + '*.png')
-        self.process()
+    def __init__(self, keyword):
         try:
-            print('Happy yay!')
+            self.keyword = keyword.upper()
+            self.ret = None
+            self.convert()
+            self.files = glob.glob(r'C:\\Users\\jsy13\Desktop\\OCRScr\\' + '*.png')
+            self.process()
         except OSError as e:
             print(e.errno)
 
@@ -32,9 +32,12 @@ class Reader:
             img = cv2.imread(file, cv2.IMREAD_GRAYSCALE)
             ship = Image.fromarray(img)
             final = ship.convert('RGB')
-            add = pytesseract.image_to_string(final)
+            add = pytesseract.image_to_string(final, config='--psm 4')
 
-            self.cache = self.cache + add
+            if self.keyword in add:
+                self.ret = self.pull(add)
+
+            os.remove(file)
 
     def convert(self):
         zoom_x = 7
@@ -50,11 +53,14 @@ class Reader:
                 pix = page.get_pixmap(matrix = mat)
                 pix.save(r'C:\Users\jsy13\Desktop\OCRScr\page-%i.png' % page.number)        
 
-    def pull(self, input):
-        pass
+    def pull(self, document):
+        interest = document.find(self.keyword)
+        slice = document[interest:]
+        parabreak = slice.find('\n\n')
+        if parabreak != -1:
+            chunk = slice[:parabreak]
+            return chunk
 
-# if __name__ == '__main__':
-#     test = Reader('voidedcontract.pdf')
-#     out = test.cache
-#     print('\n' in out)
-#     print(out)
+if __name__ == '__main__':
+    test = Reader('assignability')
+    print(test.ret)

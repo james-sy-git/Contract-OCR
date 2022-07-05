@@ -20,6 +20,7 @@ class Reader:
         try:
             self.keyword = keyword.upper()
             self.ret = None
+            self.over = False
             self.convert()
             self.files = glob.glob(r'C:\\Users\\jsy13\Desktop\\OCRScr\\' + '*.png')
             self.process()
@@ -29,19 +30,25 @@ class Reader:
     def process(self):
 
         for file in self.files:
-            img = cv2.imread(file, cv2.IMREAD_GRAYSCALE)
-            ship = Image.fromarray(img)
-            final = ship.convert('RGB')
-            add = pytesseract.image_to_string(final, config='--psm 4')
 
-            if self.keyword in add:
-                self.ret = self.pull(add)
+            if self.over != True:
+
+                img = cv2.imread(file, cv2.IMREAD_GRAYSCALE)
+                ship = Image.fromarray(img)
+                final = ship.convert('RGB')
+                add = pytesseract.image_to_string(final, config='--psm 4')
+
+                if self.keyword in add:
+                    self.ret = self.pull(add)
+                    print('found it!')
+                    self.over = True
+                    print(self.ret)
 
             os.remove(file)
 
     def convert(self):
-        zoom_x = 7
-        zoom_y = 7
+        zoom_x = 2
+        zoom_y = 2
         mat = fitz.Matrix(zoom_x, zoom_y)
 
         path = r'C:\\Users\\jsy13\Desktop\\OCRScr\\'
@@ -63,4 +70,3 @@ class Reader:
 
 if __name__ == '__main__':
     test = Reader('assignability')
-    print(test.ret)

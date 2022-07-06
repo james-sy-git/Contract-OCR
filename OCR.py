@@ -1,5 +1,5 @@
 '''
-OCR Implementation using Tesseract and Open CV
+OCR Implementation using Tesseract and PyMuPDF
 '''
 try:
     from PIL import Image
@@ -10,6 +10,10 @@ try:
     import os
     from openpyxl import Workbook
     from openpyxl.styles import Alignment
+    from tkinter.filedialog import askopenfilename, askdirectory
+    from tkinter import Tk
+
+    Tk().wm_withdraw()
 
     pytesseract.pytesseract.tesseract_cmd = 'C:\Program Files\Tesseract-OCR\\tesseract.exe'
 
@@ -21,10 +25,12 @@ class Reader:
     def __init__(self, keyword):
         try:
             self.keyword = keyword.upper()
+            self.files_to_convert = [askopenfilename()]
+            self.directory = askdirectory()
             self.ret = None
             self.over = False
             self.convert()
-            self.files = glob.glob(r'C:\\Users\\jsy13\Desktop\\OCRScr\\' + '*.png')
+            self.files = glob.glob(self.directory + '\\' + '*.png')
             self.process()
         except OSError as e:
             print(e.errno)
@@ -45,7 +51,6 @@ class Reader:
                     print('found it!')
                     self.over = True
                     self.excelload(self.ret)
-                    # print(self.ret)
 
             os.remove(file)
 
@@ -54,14 +59,14 @@ class Reader:
         zoom_y = 2
         mat = fitz.Matrix(zoom_x, zoom_y)
 
-        path = r'C:\\Users\\jsy13\Desktop\\OCRScr\\'
-        all_files = glob.glob(path + '*.pdf')
+        print(self.directory)
 
-        for filename in all_files:
+        for filename in self.files_to_convert:
+
             doc = fitz.open(filename)
             for page in doc:
                 pix = page.get_pixmap(matrix = mat)
-                pix.save(r'C:\Users\jsy13\Desktop\OCRScr\page-%i.png' % page.number)        
+                pix.save(self.directory + '\page-%i.png' % page.number)       
 
     def pull(self, document):
         interest = document.find(self.keyword)

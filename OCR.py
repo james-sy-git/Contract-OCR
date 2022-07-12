@@ -4,12 +4,10 @@ OCR Implementation using Tesseract and PyMuPDF
 try:
     from PIL import Image
     import pytesseract
-    import cv2
-    import glob
-    import fitz
-    import os
-    # from openpyxl import Workbook
-    # from openpyxl.styles import Alignment
+    from cv2 import imread, IMREAD_GRAYSCALE
+    from glob import glob
+    from fitz import open, Matrix
+    from os import path, remove
     from tkinter.filedialog import askopenfilenames, askdirectory
     from tkinter import Tk
 
@@ -35,6 +33,7 @@ class Reader:
             self.ret = []
             self.over = False
             self.files = None
+            self.newdoc = None
         except OSError as e:
             print(e.errno)
 
@@ -50,34 +49,41 @@ class Reader:
 
             if self.over != True:
 
-                img = cv2.imread(file, cv2.IMREAD_GRAYSCALE)
+                img = imread(file, IMREAD_GRAYSCALE)
                 ship = Image.fromarray(img)
                 final = ship.convert('RGB')
                 add = pytesseract.image_to_string(final, config='--psm 4')
 
                 if self.keyword in add:
-                    self.ret.append(self.pull(add))
+                    self.newdoc.setuserfield(self.pull(add))
                     print('found it!')
                     self.over = True
-                    print(self.ret)
 
-            os.remove(file)
+            remove(file)
+
+        self.ret.append(self.newdoc)
+        self.newdoc = None
 
     def convert(self):
         zoom_x = 2
         zoom_y = 2
-        mat = fitz.Matrix(zoom_x, zoom_y)
+        mat = Matrix(zoom_x, zoom_y)
 
         for filename in self.files_to_convert:
 
             self.over = False
 
-            doc = fitz.open(filename)
+            self.newdoc = DocData(self.pullagrtype(filename))
+            if self.newdoc.agrtype() != 'Multi':
+                self.newdoc.setterminal(self.pullterminal(filename))
+            self.newdoc.setcustomer(self.pullcustname(str(filename)))
+
+            doc = open(filename) # double-check that this isn't Python built-in open
             for page in doc:
                 pix = page.get_pixmap(matrix = mat)
                 pix.save(self.directory + '\page-%i.png' % page.number)
 
-            self.files = glob.glob(self.directory + '\\' + '*.png')
+            self.files = glob(self.directory + '\\' + '*.png')
 
             self.process()       
 
@@ -89,11 +95,70 @@ class Reader:
             chunk = slice[:parabreak]
             return chunk
 
+    def pullagrtype(self, file):
+        file_path = str(path.abspath(file))
+        if 'Multi Terminal' in file_path:
+            return 'Multi'
+        else:
+            return 'Single'
+        
+    def pullterminal(self, file):
+        dir = path.dirname(file)
+        return path.basename(dir)
+
+    def pullcustname(self, file):
+        stringed = str(path.basename(file))
+        dash = stringed.find('-')
+        return stringed[:dash]
+
+    def pullentity(self, document):
+        pass
+
     def clear(self):
         self.ret = []
         self.keyword = None
+
+class DocData:
+
+    def agrtype(self):
+        return self._agreementtype
+
+    def setagrtype(self, input):
+        self._agreementtype = input
+
+    def terminal(self):
+        return self._terminal
+
+    def setterminal(self, input):
+        self._terminal = input
+
+    def custname(self):
+        return self._custname
+
+    def setcustomer(self, input):
+        self._custname = input
+
+    def entity(self):
+        return self._zentity
+
+    def userfield(self):
+        return self._pullfield
+
+    def setuserfield(self, input):
+        self._pullfield = input
+    
+    def __init__(self, agr):
+        self._agreementtype = agr
+        self._terminal = None
+        self._custname = None
+        self._zentity = None
+        self._pullfield = None
 
 if __name__ == '__main__':
     test = Reader()
     test.setkeyword('assignability')
     test.convert()
+    print(test.ret[0].userfield())
+    print(test.ret[0].agrtype())
+    print(test.ret[0].terminal())
+    print(test.ret[0].custname())

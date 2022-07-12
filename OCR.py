@@ -93,6 +93,8 @@ class Reader:
         parabreak = slice.find('\n\n')
         if parabreak != -1:
             chunk = slice[:parabreak]
+            chunk.replace('\n', '')
+            chunk.replace('\r', '')
             return chunk
 
     def pullagrtype(self, file):
@@ -154,11 +156,11 @@ class DocData:
         self._zentity = None
         self._pullfield = None
 
-if __name__ == '__main__':
-    test = Reader()
-    test.setkeyword('assignability')
-    test.convert()
-    print(test.ret[0].userfield())
-    print(test.ret[0].agrtype())
-    print(test.ret[0].terminal())
-    print(test.ret[0].custname())
+# if __name__ == '__main__':
+#     test = Reader()
+#     test.setkeyword('assignability')
+#     test.convert()
+#     print(test.ret[0].userfield())
+#     print(test.ret[0].agrtype())
+#     print(test.ret[0].terminal())
+#     print(test.ret[0].custname())

@@ -95,6 +95,7 @@ class Reader:
             chunk = slice[:parabreak]
             chunk.replace('\n', '')
             chunk.replace('\r', '')
+            chunk.strip()
             return chunk
 
     def pullagrtype(self, file):

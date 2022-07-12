@@ -8,9 +8,9 @@ try:
     import glob
     import fitz
     import os
-    from openpyxl import Workbook
-    from openpyxl.styles import Alignment
-    from tkinter.filedialog import askopenfilename, askdirectory
+    # from openpyxl import Workbook
+    # from openpyxl.styles import Alignment
+    from tkinter.filedialog import askopenfilenames, askdirectory
     from tkinter import Tk
 
     Tk().wm_withdraw()
@@ -22,18 +22,27 @@ except ImportError as i:
 
 class Reader:
 
-    def __init__(self, keyword):
+    def setkeyword(self, keyword):
+        self.keyword = keyword.upper()
+
+    def __init__(self):
         try:
-            self.keyword = keyword.upper()
-            self.files_to_convert = [askopenfilename()]
-            self.directory = askdirectory()
-            self.ret = None
+            self.keyword = None
+            self.files_to_convert = None
+            self.directory = None
+            self.ask_conv()
+            self.ask_dir()
+            self.ret = []
             self.over = False
-            self.convert()
-            self.files = glob.glob(self.directory + '\\' + '*.png')
-            self.process()
+            self.files = None
         except OSError as e:
             print(e.errno)
+
+    def ask_conv(self):
+        self.files_to_convert = askopenfilenames()
+
+    def ask_dir(self):
+        self.directory = askdirectory()
 
     def process(self):
 
@@ -47,10 +56,10 @@ class Reader:
                 add = pytesseract.image_to_string(final, config='--psm 4')
 
                 if self.keyword in add:
-                    self.ret = self.pull(add)
+                    self.ret.append(self.pull(add))
                     print('found it!')
                     self.over = True
-                    self.excelload(self.ret)
+                    print(self.ret)
 
             os.remove(file)
 
@@ -59,14 +68,18 @@ class Reader:
         zoom_y = 2
         mat = fitz.Matrix(zoom_x, zoom_y)
 
-        print(self.directory)
-
         for filename in self.files_to_convert:
+
+            self.over = False
 
             doc = fitz.open(filename)
             for page in doc:
                 pix = page.get_pixmap(matrix = mat)
-                pix.save(self.directory + '\page-%i.png' % page.number)       
+                pix.save(self.directory + '\page-%i.png' % page.number)
+
+            self.files = glob.glob(self.directory + '\\' + '*.png')
+
+            self.process()       
 
     def pull(self, document):
         interest = document.find(self.keyword)
@@ -76,17 +89,11 @@ class Reader:
             chunk = slice[:parabreak]
             return chunk
 
-    def excelload(self, input):
-        wb = Workbook()
-        dest = 'example.xlsx'
-
-        ws1 = wb.active
-        ws1.title = 'Assignability Clauses'
-
-        ws1.column_dimensions['B'].width = 150
-        ws1['B2'].alignment = Alignment(wrapText=True)
-        ws1.cell(column=2, row=2, value=input)
-        wb.save(filename=dest)
+    def clear(self):
+        self.ret = []
+        self.keyword = None
 
 if __name__ == '__main__':
-    test = Reader('assignability')
+    test = Reader()
+    test.setkeyword('assignability')
+    test.convert()

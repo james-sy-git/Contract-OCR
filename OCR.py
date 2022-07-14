@@ -28,8 +28,8 @@ class Reader:
             self.keyword = None
             self.files_to_convert = None
             self.directory = None
-            self.ask_conv()
-            self.ask_dir()
+            # self.ask_conv()
+            # self.ask_dir()
             self.ret = []
             self.over = False
             self.files = None

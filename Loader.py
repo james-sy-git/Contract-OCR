@@ -42,7 +42,7 @@ class Loader:
     def __init__(self):
         self.reader = Reader()
         self.reader.setkeyword('assignability')
-        self.reader.convert()
+        # self.reader.convert()
         self.excelname = None
         self.wstitle = 'Sheet1'
         try:

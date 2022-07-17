@@ -1,12 +1,41 @@
 #:kivy 2.0
 
-<Buttons>:
+<Root>:
+    id: base
     orientation: 'vertical'
     Label:
-        text: 'label added with kv'
-        font_size: 50
+        id: title
+        text: 'Contract Parser'
+    EverythingElse:
+
+<EverythingElse>:
+    id: e
+    cols: 1
+    height: 50
     Button:
-        text: 'test button'
+        text: 'Choose Files'
+        on_press: e.ask_conv()
+    Button:
+        text: 'Choose Directory'
+        on_press: e.ask_dir()
+    Button:
+        text: 'Excel File Name'
+        on_press: e.use_xl_setter()
+    TextInput:
+        id: xlfilename
+        multiline: False
+        focus: True
+        on_text: e.update_filename()
+    Button:
+        text: 'Excel Sheet Name'
+        on_press: e.use_title_setter()
+    TextInput:
+        id: xlsheetname
+        multiline: False
+        on_text: e.update_titlename()
+    Button:
+        text: 'Convert and Export to Spreadsheet'
+        on_press: e.run()
 
 
 

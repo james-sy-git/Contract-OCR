@@ -41,9 +41,9 @@ class Loader:
 
     def __init__(self):
         self.reader = Reader()
-        self.reader.setkeyword('assignability')
+        # self.reader.setkeyword('assignability') # TOOK THESE OUT
         # self.reader.convert()
-        self.excelname = None
+        self.excelname = ''
         self.wstitle = 'Sheet1'
         try:
             self.wb = Workbook()
@@ -60,6 +60,8 @@ class Loader:
             self.sheet.column_dimensions[letter].width = self.COLUMN_WIDTH
 
     def excelload(self):
+
+        self.reader.convert()
 
         if self.reader.ret != []:
             for docdata in self.reader.ret:
@@ -86,9 +88,9 @@ class Loader:
         dest = self.excelname + '.xlsx'
         self.wb.save(filename = dest)
 
-if __name__ == "__main__":
-    test = Loader()
-    test.setexcelname('example2')
-    test.excelinit()
-    test.excelload()
-    test.savewb()
+# if __name__ == "__main__":
+#     test = Loader()
+#     test.setexcelname('example2')
+#     test.excelinit()
+#     test.excelload()
+#     test.savewb()

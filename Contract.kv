@@ -13,6 +13,14 @@
     cols: 1
     height: 50
     Button:
+        text: 'Enter Keyword'
+        on_press: e.setkey()
+    TextInput:
+        id: key
+        multiline: False
+        focus: True
+        on_text: e.updatekey()
+    Button:
         text: 'Choose Files'
         on_press: e.ask_conv()
     Button:
@@ -24,7 +32,6 @@
     TextInput:
         id: xlfilename
         multiline: False
-        focus: True
         on_text: e.update_filename()
     Button:
         text: 'Excel Sheet Name'
@@ -32,7 +39,7 @@
     TextInput:
         id: xlsheetname
         multiline: False
-        on_text: e.update_titlename()
+        on_text: e.update_sheetname()
     Button:
         text: 'Convert and Export to Spreadsheet'
         on_press: e.run()

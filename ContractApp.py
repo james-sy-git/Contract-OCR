@@ -17,21 +17,33 @@ class EverythingElse(GridLayout):
 
     loader = Loader()
     reader = loader.getreader()
+    keyword = None
     xlfilename = None
     xlsheetname = None
 
+    def updatekey(self):
+        self.keyword = self.ids.key.text
+
     def setkey(self):
-        self.reader.getkeyword()
+        self.reader.setkeyword(self.keyword)
+        print('keyword set:' + self.keyword)
 
     def ask_conv(self):
         self.reader.ask_conv()
+        print('files set')
 
     def ask_dir(self):
         self.reader.ask_dir()
+        print('directory set')
 
     def run(self):
         if self.reader.isready():
-            self.reader.convert()
+            print('running!')
+            self.loader.excelinit()
+            self.loader.excelload()
+            self.loader.savewb()
+        else:
+            print('not ready!')
 
     def use_xl_setter(self):
         if self.xlfilename != None:
@@ -50,9 +62,6 @@ class EverythingElse(GridLayout):
 
     def update_sheetname(self):
         self.xlsheetname = self.ids.xlsheetname.text
-
-    def print1(self):
-        print(1)
 class ContractApp(App):
     
     def build(self):

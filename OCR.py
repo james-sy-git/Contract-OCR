@@ -28,8 +28,6 @@ class Reader:
             self.keyword = None
             self.files_to_convert = None
             self.directory = None
-            # self.ask_conv()
-            # self.ask_dir()
             self.ret = []
             self.over = False
             self.files = None
@@ -85,7 +83,10 @@ class Reader:
 
             self.files = glob(self.directory + '\\' + '*.png')
 
-            self.process()       
+            self.process()
+
+    def isready(self):
+        return (self.files_to_convert) != None and (self.directory) != None and (self.keyword) != None      
 
     def pull(self, document):
         interest = document.find(self.keyword)
@@ -156,12 +157,3 @@ class DocData:
         self._custname = None
         self._zentity = None
         self._pullfield = None
-
-# if __name__ == '__main__':
-#     test = Reader()
-#     test.setkeyword('assignability')
-#     test.convert()
-#     print(test.ret[0].userfield())
-#     print(test.ret[0].agrtype())
-#     print(test.ret[0].terminal())
-#     print(test.ret[0].custname())

@@ -51,9 +51,12 @@ class Reader:
                 ship = Image.fromarray(img)
                 final = ship.convert('RGB')
                 add = pytesseract.image_to_string(final, config='--psm 4')
+                if self.newdoc.entity() == None:
+                    self.newdoc.setentity(self.pullentity(add))
 
                 if self.keyword in add:
                     self.newdoc.setuserfield(self.pull(add))
+                    self.newdoc.setpagenumber(self.pullpage(file))
                     print('found it!')
                     self.over = True
 
@@ -76,9 +79,10 @@ class Reader:
                 self.newdoc.setterminal(self.pullterminal(filename))
             self.newdoc.setcustomer(self.pullcustname(str(filename)))
 
-            doc = open(filename) # double-check that this isn't Python built-in open
+            doc = open(filename)
             for page in doc:
                 pix = page.get_pixmap(matrix = mat)
+                page.number = page.number + 1
                 pix.save(self.directory + '\page-%i.png' % page.number)
 
             self.files = glob(self.directory + '\\' + '*.png')
@@ -86,7 +90,7 @@ class Reader:
             self.process()
 
     def isready(self):
-        return (self.files_to_convert) != None and (self.directory) != None and (self.keyword) != None      
+        return (self.files_to_convert) != None and (self.directory) != None and (self.keyword) != ''     
 
     def pull(self, document):
         interest = document.find(self.keyword)
@@ -115,12 +119,27 @@ class Reader:
         dash = stringed.find('-')
         return stringed[:dash]
 
-    def pullentity(self, document):
-        pass
+    def pullentity(self, text): # could account for newline, but would severely affect runtime
+        ents = ('Arc Terminals New York Holdings LLC',
+        'Arc Terminals Holdings LLC',
+        'Arc Terminals Pennsylvania Holdings LLC',
+        'Zenith Energy Terminals Holdings LLC',
+        'Zenith Energy Pennsylvania Holdings LLC',
+        'Zenith Energy New York Holdings LLC')
+        for ent in ents:
+            if ent in text:
+                return ent
+
+    def pullpage(self, file):
+        strfile = str(path.basename(file))
+        rempage = strfile.replace('page-', '')
+        return rempage.replace('.png', '')
 
     def clear(self):
         self.ret = []
         self.keyword = None
+        self.files_to_convert = None
+        self.directory = None
 
 class DocData:
 
@@ -145,15 +164,25 @@ class DocData:
     def entity(self):
         return self._zentity
 
+    def setentity(self, input):
+        self._zentity = input
+
     def userfield(self):
         return self._pullfield
 
     def setuserfield(self, input):
         self._pullfield = input
-    
+
+    def pagenumber(self):
+        return self._pagenumber
+
+    def setpagenumber(self, input): # assert isdigit
+        self._pagenumber = input
+
     def __init__(self, agr):
         self._agreementtype = agr
         self._terminal = None
         self._custname = None
         self._zentity = None
         self._pullfield = None
+        self._pagenumber = None

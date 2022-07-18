@@ -9,9 +9,11 @@ Buttons:
 
 try:
     from OCR import Reader
-    from openpyxl import Workbook
+    from openpyxl import Workbook, load_workbook
     from openpyxl.styles import Alignment
     from openpyxl.utils import get_column_letter
+    from os.path import exists
+    from plistlib import InvalidFileException
 
 except ImportError as i:
     print(i.msg)
@@ -27,7 +29,8 @@ class Loader:
         'Customer Name on Contract', 
         'Zenith Entity', 
         'Contract Date', 
-        'Assignability/Transferrability'
+        'Assignability/Transferrability',
+        'Page Number'
         ]
 
     def setexcelname(self, input): # assert isalpha, prevent illegal characters
@@ -39,25 +42,39 @@ class Loader:
     def getreader(self):
         return self.reader
 
+    def getnew(self):
+        return self.new
+
+    def setnew(self, input):
+        self.new = input
+
     def __init__(self):
+        self.new = None
         self.reader = Reader()
-        # self.reader.setkeyword('assignability') # TOOK THESE OUT
-        # self.reader.convert()
-        self.excelname = ''
-        self.wstitle = 'Sheet1'
-        try:
-            self.wb = Workbook()
-        except OSError as e:
-            print(e.errno)
+        self.excelname = 'newsheet' # default
+        self.wstitle = 'Sheet' # default
+        self.wb = None
 
     def excelinit(self):
-        self.sheet = self.wb.active
-        self.sheet.title = self.wstitle
+        if self.new == None:
+            try:
+                self.wb = Workbook()
+            except OSError as e:
+                print(e.errno)
+            self.sheet = self.wb.active
+            self.sheet.title = self.wstitle
 
-        for header_number in range(1, len(self.COLUMN_HEADERS)+1):
-            self.sheet.cell(column=header_number, row=1, value=self.COLUMN_HEADERS[header_number-1])
-            letter = get_column_letter(header_number)
-            self.sheet.column_dimensions[letter].width = self.COLUMN_WIDTH
+            for header_number in range(1, len(self.COLUMN_HEADERS)+1):
+                self.sheet.cell(column=header_number, row=1, value=self.COLUMN_HEADERS[header_number-1])
+                letter = get_column_letter(header_number)
+                self.sheet.column_dimensions[letter].width = self.COLUMN_WIDTH
+
+        else:
+            try:
+                self.wb = load_workbook(filename = self.new)
+                self.sheet = self.wb.active
+            except InvalidFileException as e:
+                print(e)
 
     def excelload(self):
 
@@ -81,16 +98,24 @@ class Loader:
                 self.sheet.cell(column=7, row=row_to_use, value=docdata.userfield()) # G: Data to pull (assignability, etc.)
                 self.sheet.column_dimensions['G'].width = 77
 
+                self.sheet.cell(column=8, row=row_to_use, value=docdata.pagenumber()) # H: Page number of clause
 
-        self.sheet['G2'].alignment = Alignment(wrapText=True)
+                self.sheet['G{}'.format(str(row_to_use))].alignment = Alignment(wrapText=True)
 
     def savewb(self):
-        dest = self.excelname + '.xlsx'
-        self.wb.save(filename = dest)
+        if self.new == None:
+            dest = self.excelname + '.xlsx'
+            if not exists(dest):
+                self.wb.save(filename = dest)
+            else:
+                print('this file name already exists!')
+        else:
+            dest = self.new
+            self.wb.save(filename = dest)
 
-# if __name__ == "__main__":
-#     test = Loader()
-#     test.setexcelname('example2')
-#     test.excelinit()
-#     test.excelload()
-#     test.savewb()
+        self.getreader().clear()
+        self.clear()
+
+    def clear(self):
+        self.new = None
+        self.wb = None

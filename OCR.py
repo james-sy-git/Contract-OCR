@@ -147,7 +147,7 @@ class Reader:
         '''
         Returns whether or nto the Reader is ready to accept and process documents.
         '''
-        return (self.files_to_convert) != None and (self.directory) != None and (self.keyword) != ''     
+        return (self.files_to_convert) != None and (self.directory) != None and (self.keyword) != '' and (self.keyword) != None     
 
     def pull(self, document):
         '''

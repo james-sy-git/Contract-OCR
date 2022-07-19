@@ -19,6 +19,34 @@ except ImportError as i:
     print(i.msg)
 
 class Loader:
+    '''
+    Loads information pulled from documents into a new or existing Excel spreadsheet
+    while also formatting the information and sheets
+
+    Class attrs:
+
+    att COLUMN_WIDTH: a constant specifying the width of the title columns
+    inv: COLUMN_WIDTH is an int
+
+    att COLUMN_HEADERS: a constant specifying the list of column title headers
+    inv: COLUMN_HEADERS is a 1-D list of strings
+
+    att reader: this Loader's associated Reader object
+    inv: reader is an object of class Reader
+
+    att excelname: the prefix of the Excel filename to be saved, 'newsheet' by default
+    inv: excelname is a string
+
+    att wstitle: the name of the saved spreadsheet sheet, 'Sheet' by default
+    inv: wstitle is a string
+
+    att wb: the active Workbook
+    inv: wb is a Workbook or None
+    '''
+    # Hidden attrs:
+
+    # att new: the name of the existing Excel sheet
+    # inv: new is a string or None
 
     COLUMN_WIDTH = 22
 
@@ -34,21 +62,42 @@ class Loader:
         ]
 
     def setexcelname(self, input): # assert isalpha, prevent illegal characters
+        '''
+        Setter for excelname
+        Param: input must be a string of Windows-legal characters
+        '''
         self.excelname = input
 
     def setwstitle(self, input):
+        '''
+        Setter for wstitle
+        Param: input must be a string
+        '''
         self.wstitle = input
 
     def getreader(self):
+        '''
+        Returns associated Reader object
+        '''
         return self.reader
 
     def getnew(self):
+        '''
+        Returns value of new attribute
+        '''
         return self.new
 
     def setnew(self, input):
+        '''
+        Setter for new attribute
+        Param: new must be a string or None
+        '''
         self.new = input
 
     def __init__(self):
+        '''
+        Initializer
+        '''
         self.new = None
         self.reader = Reader()
         self.excelname = 'newsheet' # default
@@ -56,6 +105,9 @@ class Loader:
         self.wb = None
 
     def excelinit(self):
+        '''
+        For new workbook, initializes a new spreadsheet and populates it with column titles
+        '''
         if self.new == None:
             try:
                 self.wb = Workbook()
@@ -77,6 +129,9 @@ class Loader:
                 print(e)
 
     def excelload(self):
+        '''
+        Calls reader's convert() method and loads this data into sheet within wb
+        '''
 
         self.reader.convert()
 
@@ -92,6 +147,7 @@ class Loader:
                 self.sheet.cell(column=4, row=row_to_use, value=None) # D: Customer name on contract
 
                 self.sheet.cell(column=5, row=row_to_use, value=docdata.entity()) # E: Company entity
+                self.sheet['E{}'.format(str(row_to_use))].alignment = Alignment(wrapText=True)
 
                 self.sheet.cell(column=6, row=row_to_use, value=None) # F: Contract date
 
@@ -99,10 +155,12 @@ class Loader:
                 self.sheet.column_dimensions['G'].width = 77
 
                 self.sheet.cell(column=8, row=row_to_use, value=docdata.pagenumber()) # H: Page number of clause
-
                 self.sheet['G{}'.format(str(row_to_use))].alignment = Alignment(wrapText=True)
 
     def savewb(self):
+        '''
+        If new == None, saves a new file, otherwise saves the existing Excel spreadsheet
+        '''
         if self.new == None:
             dest = self.excelname + '.xlsx'
             if not exists(dest):
@@ -112,10 +170,12 @@ class Loader:
         else:
             dest = self.new
             self.wb.save(filename = dest)
-
-        self.getreader().clear()
         self.clear()
 
     def clear(self):
+        '''
+        Clears Loader fields and calls associated Reader object's clear() method
+        '''
+        self.getreader().clear()
         self.new = None
         self.wb = None

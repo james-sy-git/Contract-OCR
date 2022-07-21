@@ -11,7 +11,7 @@ try:
     from tkinter.filedialog import askopenfilenames, askdirectory
     from tkinter import Tk
 
-    Tk().wm_withdraw() # headless Tkinter GUI to use file dialog
+    # Tk().wm_withdraw() # headless Tkinter GUI to use file dialog
 
     pytesseract.pytesseract.tesseract_cmd = 'C:\Program Files\Tesseract-OCR\\tesseract.exe'
 
@@ -55,6 +55,12 @@ class Reader:
         '''
         self.keyword = keyword.upper()
 
+    def setfiles(self, files):
+        self.files_to_convert = files
+
+    def setdir(self, directory):
+        self.directory = directory
+
     def __init__(self):
         '''
         Initializer
@@ -69,18 +75,6 @@ class Reader:
             self.newdoc = None
         except OSError as e:
             print(e.errno)
-
-    def ask_conv(self):
-        '''
-        Uses file dialog to assign files_to_convert
-        '''
-        self.files_to_convert = askopenfilenames()
-
-    def ask_dir(self):
-        '''
-        Uses file dialog to assign directory
-        '''
-        self.directory = askdirectory()
 
     def process(self):
         '''

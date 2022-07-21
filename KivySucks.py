@@ -6,7 +6,7 @@ from plistlib import InvalidFileException
 import tkinter as tk
 from tkinter import ttk
 from Loader import Loader
-from tkinter.filedialog import askopenfilename
+from tkinter.filedialog import askopenfilename, askopenfilenames, askdirectory
 
 class ContractFrame(ttk.Frame):
 
@@ -20,23 +20,23 @@ class ContractFrame(ttk.Frame):
         self.loader = Loader()
         self.reader = self.loader.getreader()
 
-        self.keyword = tk.StringVar()
+        self.guikeyword = tk.StringVar()
         self.filename = tk.StringVar()
         self.sheetname = tk.StringVar()
 
         self.keyword_label = ttk.Label(self, text='Keyword')
         self.keyword_label.grid(column=0, row=1, **padding)        
 
-        self.keyword_entry = ttk.Entry(self, textvariable=self.keyword, width=40)
+        self.keyword_entry = ttk.Entry(self, textvariable=self.guikeyword, width=40)
         self.keyword_entry.grid(column=1, row=1, columnspan=2, **padding)
         self.keyword_entry.focus()
 
         self.file_button = ttk.Button(self, text='Choose Files', width=60,
-        command=(lambda: self.reader.ask_conv()))
+        command=(lambda: self.ask_conv()))
         self.file_button.grid(column=0, row=2, columnspan=2, **padding)
 
         self.directory_button = ttk.Button(self, text='Choose Directory', width=60,
-        command=(lambda: self.reader.ask_dir()))
+        command=(lambda: self.ask_dir()))
         self.directory_button.grid(column=0, row=3, columnspan=2, **padding)
 
         self.existing_file_button = ttk.Button(self, text='Choose Existing Spreadsheet', width=60,
@@ -62,7 +62,13 @@ class ContractFrame(ttk.Frame):
         self.quitbutton = ttk.Button(self, text='Quit', command=quit, width=10)
         self.quitbutton.grid(column=0, row=9, columnspan=2, **padding)
 
-        self.pack()   
+        self.pack()
+
+    def ask_conv(self):
+        self.reader.setfiles(askopenfilenames())
+
+    def ask_dir(self):
+        self.reader.setdir(askdirectory())
 
     def askforspreadsheet(self):
         '''
@@ -78,8 +84,11 @@ class ContractFrame(ttk.Frame):
         '''
         Checks if the Reader object has its fields filled, and runs the contract parser
         '''
+        self.reader.setkeyword(self.guikeyword.get())
+        self.loader.setexcelname(self.filename.get())
+        self.loader.setwstitle(self.sheetname.get())
+
         if self.reader.isready():
-            self.buttondisable = True
             print('running!')
             self.loader.excelinit()
             self.loader.excelload()
@@ -87,6 +96,11 @@ class ContractFrame(ttk.Frame):
             self.clear()
         else:
             print('not ready!') 
+
+    def clear(self):
+        self.guikeyword.set('')
+        self.filename.set('')
+        self.sheetname.set('')
 
 class ContractApp(tk.Tk):
 

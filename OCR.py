@@ -8,12 +8,6 @@ try:
     from glob import glob
     from fitz import open, Matrix
     from os import path, remove
-    from tkinter.filedialog import askopenfilenames, askdirectory
-    from tkinter import Tk
-
-    # Tk().wm_withdraw() # headless Tkinter GUI to use file dialog
-
-    pytesseract.pytesseract.tesseract_cmd = 'C:\Program Files\Tesseract-OCR\\tesseract.exe'
 
 except ImportError as i:
     print(i.msg)
@@ -58,10 +52,13 @@ class Reader:
     def setfiles(self, files):
         self.files_to_convert = files
 
+    def getdir(self):
+        return self.directory
+
     def setdir(self, directory):
         self.directory = directory
 
-    def __init__(self):
+    def __init__(self, tesser):
         '''
         Initializer
         '''
@@ -73,6 +70,7 @@ class Reader:
             self.over = False
             self.files = None
             self.newdoc = None
+            pytesseract.pytesseract.tesseract_cmd = tesser
         except OSError as e:
             print(e.errno)
 
@@ -93,8 +91,10 @@ class Reader:
                 ship = Image.fromarray(img)
                 final = ship.convert('RGB')
                 add = pytesseract.image_to_string(final, config='--psm 4')
-                if self.newdoc.entity() == None:
-                    self.newdoc.setentity(self.pullentity(add))
+
+                if file == self.files[0]:
+                    rem_linebreaks = add.replace('\n', ' ')
+                    self.newdoc.setentity(self.pullentity(rem_linebreaks))
 
                 if self.keyword in add:
                     self.newdoc.setuserfield(self.pull(add))
@@ -153,10 +153,10 @@ class Reader:
         parabreak = slice.find('\n\n')
         if parabreak != -1:
             chunk = slice[:parabreak]
-            chunk.replace('\n', '')
-            chunk.replace('\r', '')
-            chunk.strip()
-            return chunk
+            stripn = chunk.replace('\n', ' ')
+            stripr = stripn.replace('\r', ' ')
+            stripstrip = stripr.strip()
+            return stripstrip
 
     def pullagrtype(self, file):
         '''
@@ -186,18 +186,24 @@ class Reader:
         dash = stringed.find('-')
         return stringed[:dash]
 
-    def pullentity(self, text): # could account for newline, but would severely affect runtime
+    def pullentity(self, text):
         '''
         Extracts and returns the company entity, if it is one of
         the names enumerated in ents.
         Param: text is a string
         '''
         ents = ('Arc Terminals New York Holdings LLC',
+        'Arc Terminals New York Holdings, LLC',
         'Arc Terminals Holdings LLC',
+        'Arc Terminals Holdings, LLC',
         'Arc Terminals Pennsylvania Holdings LLC',
+        'Arc Terminals Pennsylvania Holdings, LLC',
         'Zenith Energy Terminals Holdings LLC',
+        'Zenith Energy Terminals Holdings, LLC',
         'Zenith Energy Pennsylvania Holdings LLC',
-        'Zenith Energy New York Holdings LLC')
+        'Zenith Energy Pennsylvania Holdings, LLC',
+        'Zenith Energy New York Holdings LLC',
+        'Zenith Energy New York Holdings, LLC')
         for ent in ents:
             if ent in text:
                 return ent

@@ -94,12 +94,12 @@ class Loader:
         '''
         self.new = input
 
-    def __init__(self):
+    def __init__(self, tesser):
         '''
         Initializer
         '''
         self.new = None
-        self.reader = Reader()
+        self.reader = Reader(tesser)
         self.excelname = 'newsheet' # default
         self.wstitle = 'Sheet' # default
         self.wb = None
@@ -164,12 +164,12 @@ class Loader:
         if self.new == None:
             dest = self.excelname + '.xlsx'
             if not exists(dest):
-                self.wb.save(filename = dest)
+                self.wb.save(self.reader.getdir() + '/' + dest)
             else:
-                print('this file name already exists!')
+                print('This file name already exists!')
         else:
             dest = self.new
-            self.wb.save(filename = dest)
+            self.wb.save(self.reader.getdir() + '/' + dest)
         self.clear()
 
     def clear(self):

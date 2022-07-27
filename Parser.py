@@ -1,5 +1,8 @@
 '''
 GUI to control Reader and Loader functionality
+
+James Sy
+July 27, 2022
 '''
 
 from plistlib import InvalidFileException

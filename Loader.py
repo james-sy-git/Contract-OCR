@@ -1,10 +1,8 @@
 '''
 Loads post-OCR PDFs into an Excel sheet using OpenPyXL
-Buttons:
-- enter keyword
-- choose files
-- choose working directory
-- convert and search then load into Excel
+
+James Sy
+July 27, 2022
 '''
 
 try:

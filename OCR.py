@@ -1,5 +1,8 @@
 '''
 OCR Implementation using Tesseract and PyMuPDF
+
+James Sy
+July 27, 2022
 '''
 try:
     from PIL import Image

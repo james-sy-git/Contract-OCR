@@ -25,3 +25,5 @@ UX:
 5. Send it!!
 6. Find desired output in the Excel file -- if the clause is not found in
    a certain PDF, the output cell will be blank
+   
+Note: Final release does not contain ContractApp.py or Contract.kv

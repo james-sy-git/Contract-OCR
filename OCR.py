@@ -50,17 +50,29 @@ class Reader:
         self.keyword = keyword.upper()
 
     def setfiles(self, files):
+        '''
+        Setter for files that are to be converted
+        Param: files must be valid files that are accessible by the user's OS
+        '''
         self.files_to_convert = files
 
     def getdir(self):
+        '''
+        Returns this Reader's active directory
+        '''
         return self.directory
 
     def setdir(self, directory):
+        '''
+        Sets this Reader's active directory
+        Param: directory must be a valid directory on a path accessible by the user's OS
+        '''
         self.directory = directory
 
     def __init__(self, tesser):
         '''
         Initializer
+        Param tesser: the path to tesseract.exe on the user's OS
         '''
         try:
             self.keyword = None

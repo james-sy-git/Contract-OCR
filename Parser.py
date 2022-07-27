@@ -9,20 +9,29 @@ from Loader import Loader
 from tkinter.filedialog import askopenfilename, askopenfilenames, askdirectory
 
 class ContractFrame(ttk.Frame):
+    '''
+    Main working frame that contains Tkinter widgets
+    '''
 
     def __init__(self, container):
+        '''
+        Initializer
+        
+        Param container: the root window for this Tkinter Frame
+        Pre: container must be a Tk() object 
+        '''
         super().__init__(container)
 
         padding = {'padx': 4, 'pady': 4}
 
-        self.font = ('Segoe UI Emoji', 10)
+        self.font = ('Segoe UI Emoji', 10) # typeface data
 
-        self.loader = Loader(askopenfilename())
-        self.reader = self.loader.getreader()
+        self.loader = Loader(askopenfilename()) # associated Loader object
+        self.reader = self.loader.getreader() # associated Reader object
 
-        self.attrs = []
+        self.attrs = [] # buttons and entries
 
-        self.guikeyword = tk.StringVar()
+        self.guikeyword = tk.StringVar() # StringVars to store text entry values
         self.filename = tk.StringVar()
         self.sheetname = tk.StringVar()
 
@@ -78,9 +87,15 @@ class ContractFrame(ttk.Frame):
         self.pack()
 
     def ask_conv(self):
+        '''
+        Uses this Frame's reader's setfiles method with a file dialog
+        '''
         self.reader.setfiles(askopenfilenames())
 
     def ask_dir(self):
+        '''
+        Uses this Frame's reader's setdir method with a file dialog
+        '''
         self.reader.setdir(askdirectory())
 
     def askforspreadsheet(self):
@@ -94,11 +109,17 @@ class ContractFrame(ttk.Frame):
             print(e.with_traceback()) 
 
     def lockout(self):
+        '''
+        Disables all user-inputted widgets in attrs
+        '''
         for att in self.attrs:
             att.config(state=tk.DISABLED)
             self.update()
 
     def restore(self):
+        '''
+        Enables all user-inputted widgets in attrs
+        '''
         for att in self.attrs:
             att.config(state=tk.NORMAL)
             self.update()
@@ -127,8 +148,14 @@ class ContractFrame(ttk.Frame):
         self.sheetname.set('')
 
 class ContractApp(tk.Tk):
+    '''
+    Container window for the working frame
+    '''
 
     def __init__(self):
+        '''
+        Initializer
+        '''
         super().__init__()
 
         self.title('Contract Parser')
@@ -142,4 +169,4 @@ class ContractApp(tk.Tk):
 if __name__ == '__main__':
     app = ContractApp()
     frame = ContractFrame(app)
-    app.mainloop()
+    app.mainloop() # runs the app

@@ -1,0 +1,89 @@
+#:kivy 2.0
+
+<Root>:
+    canvas.before:
+        Color:
+            rgba: 0.93, 0.92, 0.22, 0.8
+        Rectangle:
+            pos: self.pos
+            size: self.size
+    id: base
+    orientation: 'vertical'
+    Label:
+        id: title
+        text: 'Contract Parser'
+        size_hint_y: .1
+        font_size: 40
+    EverythingElse:
+
+<EverythingElse>:
+    id: e
+    cols: 1
+    height: 60
+    padding: 45
+    Button:
+        text: 'Enter Keyword'
+        on_press: e.setkey()
+        background_normal: ''
+        background_color: 0.32, 0.82, 0.12, 0.8
+        font_size: 20
+    TextInput:
+        id: key
+        multiline: False
+        focus: True
+        on_text: e.updatekey()
+        halign: 'center'
+        background_normal: ''
+        font_size: 20       
+    Button:
+        text: 'Choose Files'
+        on_press: e.ask_conv()
+        background_normal: ''
+        background_color: 0.32, 0.82, 0.12, 0.8
+        font_size: 20        
+    Button:
+        text: 'Choose Directory'
+        on_press: e.ask_dir()
+        background_normal: ''
+        background_color: 0.32, 0.82, 0.12, 0.8
+        font_size: 20                
+    Button:
+        text: 'Choose Existing Excel File'
+        on_press: e.askforspreadsheet()
+        background_normal: ''
+        background_color: 0.32, 0.82, 0.12, 0.8   
+        font_size: 20     
+    Button:
+        text: 'Excel File Name'
+        on_press: e.use_xl_setter()
+        background_normal: ''
+        background_color: 0.32, 0.82, 0.12, 0.8  
+        font_size: 20        
+    TextInput:
+        id: xlfilename
+        multiline: False
+        on_text: e.update_filename()
+        halign: 'center'
+        background_normal: ''
+        font_size: 20  
+    Button:
+        text: 'Excel Sheet Name'
+        on_press: e.use_title_setter()
+        background_normal: ''
+        background_color: 0.32, 0.82, 0.12, 0.8  
+        font_size: 20        
+    TextInput:
+        id: xlsheetname
+        multiline: False
+        on_text: e.update_sheetname()
+        halign: 'center'
+        background_normal: ''
+        font_size: 20  
+    Button:
+        text: 'Convert and Export to Spreadsheet'
+        on_press: e.run()
+        background_normal: ''
+        background_color: 0.32, 0.82, 0.12, 0.8
+        font_size: 20  
+
+

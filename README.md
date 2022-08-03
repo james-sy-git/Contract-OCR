@@ -27,3 +27,10 @@ UX:
    a certain PDF, the output cell will be blank
    
 Note: Final release does not contain ContractApp.py or Contract.kv
+
+Versions:
+
+v1.0.0 (UR): Base functionality, handling one clause
+v1.1.0 (UR): Changed GUI colors, widened buttons
+v1.2.0 (UR): Added line-break case for company entity name extraction
+v1.3.0: Integrated "lock-out" to disable buttons when parser is running

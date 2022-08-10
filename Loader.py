@@ -26,9 +26,6 @@ class Loader:
     att COLUMN_WIDTH: a constant specifying the width of the title columns
     inv: COLUMN_WIDTH is an int
 
-    att COLUMN_HEADERS: a constant specifying the list of column title headers
-    inv: COLUMN_HEADERS is a 1-D list of strings
-
     att reader: this Loader's associated Reader object
     inv: reader is an object of class Reader
 
@@ -47,17 +44,6 @@ class Loader:
     # inv: new is a string or None
 
     COLUMN_WIDTH = 22
-
-    COLUMN_HEADERS = [
-        'Agreement Type', 
-        'Terminal', 
-        'Customer Name - Corporate', 
-        'Customer Name on Contract', 
-        'Zenith Entity', 
-        'Contract Date', 
-        'Assignability/Transferrability',
-        'Page Number'
-        ]
 
     def setexcelname(self, input): # assert isalpha, prevent illegal characters
         '''
@@ -79,52 +65,43 @@ class Loader:
         '''
         return self.reader
 
-    def getnew(self):
-        '''
-        Returns value of new attribute
-        '''
-        return self.new
-
-    def setnew(self, input):
-        '''
-        Setter for new attribute
-        Param: new must be a string or None
-        '''
-        self.new = input
-
-    def __init__(self, tesser):
+    def __init__(self):
         '''
         Initializer
         '''
-        self.new = None
-        self.reader = Reader(tesser)
+        self.reader = Reader()
         self.excelname = 'newsheet' # default
         self.wstitle = 'Sheet' # default
         self.wb = None
 
-    def excelinit(self):
+    def excelinit(self, header1, header2, header3):
         '''
         For new workbook, initializes a new spreadsheet and populates it with column titles
         '''
-        if self.new == None:
-            try:
-                self.wb = Workbook()
-            except OSError as e:
-                print(e.errno)
-            self.sheet = self.wb.active
-            self.sheet.title = self.wstitle
 
-            for header_number in range(1, len(self.COLUMN_HEADERS)+1):
-                self.sheet.cell(column=header_number, row=1, value=self.COLUMN_HEADERS[header_number-1])
-                letter = get_column_letter(header_number)
-                self.sheet.column_dimensions[letter].width = self.COLUMN_WIDTH
+        headers = [
+            'FILE PATH',
+            'FIRST PARAGRAPH',
+            header1.upper(),
+            header2.upper(),
+            header3.upper()
+        ]
 
-        else:
-            try:
-                self.wb = load_workbook(filename = self.new)
-                self.sheet = self.wb.active
-            except InvalidFileException as e:
-                print(e)
+        self.inp1_title = header1.upper()
+        self.inp2_title = header2.upper()
+        self.inp3_title = header3.upper()
+
+        try:
+            self.wb = Workbook()
+        except OSError as e:
+            print(e.errno)
+        self.sheet = self.wb.active
+        self.sheet.title = self.wstitle
+
+        for header_number in range(1, len(headers)+1):
+            self.sheet.cell(column=header_number, row=1, value=headers[header_number-1])
+            letter = get_column_letter(header_number)
+            self.sheet.column_dimensions[letter].width = self.COLUMN_WIDTH
 
     def excelload(self):
         '''
@@ -136,38 +113,36 @@ class Loader:
         if self.reader.ret != []:
             for docdata in self.reader.ret:
                 row_to_use = self.sheet.max_row + 1
-                self.sheet.cell(column=1, row=row_to_use, value=docdata.agrtype()) # A: Agreement type
 
-                self.sheet.cell(column=2, row=row_to_use, value=docdata.terminal()) # B: Terminal name
+                self.sheet.cell(column=1, row=row_to_use, value=docdata.getfile()) # A: filename
+                self.sheet['A{}'.format(str(row_to_use))].alignment = Alignment(wrapText=True)
 
-                self.sheet.cell(column=3, row=row_to_use, value=docdata.custname()) # C: Customer name on file
+                self.sheet.cell(column=2, row=row_to_use, value=docdata.para()) # B: first paragraph
+                self.sheet['B{}'.format(str(row_to_use))].alignment = Alignment(wrapText=True)
+                self.sheet.column_dimensions['B'].width = 77
 
-                self.sheet.cell(column=4, row=row_to_use, value=None) # D: Customer name on contract
+                self.sheet.cell(column=3, row=row_to_use, value=docdata.input_1()) # C: first input
+                self.sheet['C{}'.format(str(row_to_use))].alignment = Alignment(wrapText=True)
+                self.sheet.column_dimensions['C'].width = 77
 
-                self.sheet.cell(column=5, row=row_to_use, value=docdata.entity()) # E: Company entity
+                self.sheet.cell(column=4, row=row_to_use, value=docdata.input_2()) # D: second input
+                self.sheet['D{}'.format(str(row_to_use))].alignment = Alignment(wrapText=True)
+                self.sheet.column_dimensions['D'].width = 77
+
+                self.sheet.cell(column=5, row=row_to_use, value=docdata.input_3()) # E: third input
                 self.sheet['E{}'.format(str(row_to_use))].alignment = Alignment(wrapText=True)
-
-                self.sheet.cell(column=6, row=row_to_use, value=None) # F: Contract date
-
-                self.sheet.cell(column=7, row=row_to_use, value=docdata.userfield()) # G: Data to pull (assignability, etc.)
-                self.sheet.column_dimensions['G'].width = 77
-
-                self.sheet.cell(column=8, row=row_to_use, value=docdata.pagenumber()) # H: Page number of clause
-                self.sheet['G{}'.format(str(row_to_use))].alignment = Alignment(wrapText=True)
+                self.sheet.column_dimensions['E'].width = 77
 
     def savewb(self):
         '''
         If new == None, saves a new file, otherwise saves the existing Excel spreadsheet
         '''
-        if self.new == None:
-            dest = self.excelname + '.xlsx'
-            if not exists(dest):
-                self.wb.save(self.reader.getdir() + '/' + dest)
-            else:
-                print('This file name already exists!')
-        else:
-            dest = self.new
+
+        dest = self.excelname + '.xlsx'
+        if not exists(dest):
             self.wb.save(self.reader.getdir() + '/' + dest)
+        else:
+            print('This file name already exists!')
         self.clear()
 
     def clear(self):
@@ -175,5 +150,4 @@ class Loader:
         Clears Loader fields and calls associated Reader object's clear() method
         '''
         self.getreader().clear()
-        self.new = None
         self.wb = None

@@ -11,6 +11,7 @@ try:
     from glob import glob
     from fitz import open, Matrix
     from os import path, remove
+    from re import search, IGNORECASE
 
 except ImportError as i:
     print(i.msg)
@@ -35,9 +36,6 @@ class Reader:
     att ret: the list of DocData objects containing document information
     inv: ret is a list of DocData objects or an empty list
 
-    att over: whether or not the processing loop should continue to search pages
-    inv: over is a boolean
-
     att files: the list of PNG files in the directory to be OCR'd and parsed
     inv: files is a list of PNG files or None
 
@@ -45,12 +43,26 @@ class Reader:
     inv: newdoc is a DocData object or None
     '''
 
-    def setkeyword(self, keyword):
+    def setkey1(self, keyword):
         '''
         Setter for keyword that turns the input into uppercase
         Param: keyword must be a string
         '''
-        self.keyword = keyword.upper()
+        self.key1 = keyword.upper()
+
+    def setkey2(self, keyword):
+        '''
+        Setter for keyword that turns the input into uppercase
+        Param: keyword must be a string
+        '''
+        self.key2 = keyword.upper()
+
+    def setkey3(self, keyword):
+        '''
+        Setter for keyword that turns the input into uppercase
+        Param: keyword must be a string
+        '''
+        self.key3 = keyword.upper()
 
     def setfiles(self, files):
         '''
@@ -72,20 +84,23 @@ class Reader:
         '''
         self.directory = directory
 
-    def __init__(self, tesser):
+    def __init__(self):
         '''
         Initializer
         Param tesser: the path to tesseract.exe on the user's OS
         '''
         try:
-            self.keyword = None
+            self.key1 = None
+            self.key2 = None
+            self.key3 = None
             self.files_to_convert = None
             self.directory = None
             self.ret = []
-            self.over = False
             self.files = None
             self.newdoc = None
-            pytesseract.pytesseract.tesseract_cmd = tesser
+            self.first_paragraph_trigger = 'this'
+            self.min_paragraph_spaces = 7
+            pytesseract.pytesseract.tesseract_cmd = r'tesseract\\tesseract.exe'
         except OSError as e:
             print(e.errno)
 
@@ -98,26 +113,23 @@ class Reader:
         object to ret.
         '''
 
+        curr = ''
+
         for file in self.files:
 
-            if self.over != True:
+            img = imread(file, IMREAD_GRAYSCALE)
+            ship = Image.fromarray(img)
+            final = ship.convert('RGB')
+            add = pytesseract.image_to_string(final, config='--psm 4')
 
-                img = imread(file, IMREAD_GRAYSCALE)
-                ship = Image.fromarray(img)
-                final = ship.convert('RGB')
-                add = pytesseract.image_to_string(final, config='--psm 4')
-
-                if file == self.files[0]:
-                    rem_linebreaks = add.replace('\n', ' ')
-                    self.newdoc.setentity(self.pullentity(rem_linebreaks))
-
-                if self.keyword in add:
-                    self.newdoc.setuserfield(self.pull(add))
-                    self.newdoc.setpagenumber(self.pullpage(file))
-                    print('found it!')
-                    self.over = True
+            curr = curr + add
 
             remove(file)
+
+        self.newdoc.setpara(self.pull(curr, self.first_paragraph_trigger))
+        self.newdoc.set1(self.pull(curr, self.key1))
+        self.newdoc.set2(self.pull(curr, self.key2))
+        self.newdoc.set3(self.pull(curr, self.key3))
 
         self.ret.append(self.newdoc)
         self.newdoc = None
@@ -135,12 +147,7 @@ class Reader:
 
         for filename in self.files_to_convert:
 
-            self.over = False
-
-            self.newdoc = DocData(self.pullagrtype(filename))
-            if self.newdoc.agrtype() != 'Multi':
-                self.newdoc.setterminal(self.pullterminal(filename))
-            self.newdoc.setcustomer(self.pullcustname(str(filename)))
+            self.newdoc = DocData(str(filename))
 
             doc = open(filename)
             for page in doc:
@@ -156,82 +163,38 @@ class Reader:
         '''
         Returns whether or nto the Reader is ready to accept and process documents.
         '''
-        return (self.files_to_convert) != None and (self.directory) != None and (self.keyword) != '' and (self.keyword) != None     
+        return (self.files_to_convert) != None and \
+            (self.directory) != None and \
+                (self.key1) != '' and \
+                    (self.key1) != None and \
+                        (self.key2) != '' and \
+                            (self.key2) != None and \
+                                (self.key3) != '' and \
+                                    (self.key3) != None
+            
 
-    def pull(self, document):
+    def pull(self, document, keyword):
         '''
         Searches for the keyword clause, returns it if found
         Param: document is a string
         '''
-        interest = document.find(self.keyword)
+        interest = search(keyword, document, IGNORECASE).start()
         slice = document[interest:]
         parabreak = slice.find('\n\n')
         if parabreak != -1:
             chunk = slice[:parabreak]
-            stripn = chunk.replace('\n', ' ')
-            stripr = stripn.replace('\r', ' ')
-            stripstrip = stripr.strip()
-            return stripstrip
-
-    def pullagrtype(self, file):
-        '''
-        Extracts and returns the agreement type
-        Param: file is a valid, existing file
-        '''
-        file_path = str(path.abspath(file))
-        if 'Multi Terminal' in file_path:
-            return 'Multi'
-        else:
-            return 'Single'
-        
-    def pullterminal(self, file):
-        '''
-        Extracts and returns the terminal name
-        Param: file is a valid, existing file
-        '''
-        dir = path.dirname(file)
-        return path.basename(dir)
-
-    def pullcustname(self, file):
-        '''
-        Extracts and returns the customer name
-        Param: file is a valid, existing file
-        '''
-        stringed = str(path.basename(file))
-        dash = stringed.find('-')
-        return stringed[:dash]
-
-    def pullentity(self, text):
-        '''
-        Extracts and returns the company entity, if it is one of
-        the names enumerated in ents.
-        Param: text is a string
-        '''
-        ents = ('Arc Terminals New York Holdings LLC',
-        'Arc Terminals New York Holdings, LLC',
-        'Arc Terminals Holdings LLC',
-        'Arc Terminals Holdings, LLC',
-        'Arc Terminals Pennsylvania Holdings LLC',
-        'Arc Terminals Pennsylvania Holdings, LLC',
-        'Zenith Energy Terminals Holdings LLC',
-        'Zenith Energy Terminals Holdings, LLC',
-        'Zenith Energy Pennsylvania Holdings LLC',
-        'Zenith Energy Pennsylvania Holdings, LLC',
-        'Zenith Energy New York Holdings LLC',
-        'Zenith Energy New York Holdings, LLC')
-        for ent in ents:
-            if ent in text:
-                return ent
-
-    def pullpage(self, file):
-        '''
-        Isolates the page number according to the file-naming conventions used
-        by the convert() method
-        Param: file is a valid, existing PNG file created by the convert() method
-        '''
-        strfile = str(path.basename(file))
-        rempage = strfile.replace('page-', '')
-        return rempage.replace('.png', '')
+            if chunk.count(' ') < self.min_paragraph_spaces:
+                nextone = slice[parabreak+1].find('\n\n')
+                chunk = slice[:nextone]
+            if chunk[-1] == '.' or chunk[-1] == '\"' or chunk[-1] == chr(8221):
+                chunquito = chunk.strip()
+                return(''.join(chunquito))
+            else:
+                keepgoing = slice[parabreak+1:]
+                parabreak2 = keepgoing.find('\n\n')
+                chunk2 = keepgoing[:parabreak2]
+                chunquito = chunk2.strip()
+                return(''.join(chunquito))
 
     def clear(self):
         '''
@@ -243,96 +206,37 @@ class Reader:
         self.directory = None
 
 class DocData:
-    '''
-    Stores data that is extracted with a Reader
-    '''
 
-    def agrtype(self):
-        '''
-        Returns agreement type
-        '''
-        return self._agreementtype
+    def getfile(self):
+        return self.filename
 
-    def setagrtype(self, input):
-        '''
-        Sets agreement type
-        Param: input is a string, either 'Multi' or 'Single'
-        '''
-        self._agreementtype = input
+    def para(self):
+        return self.firstparagraph
 
-    def terminal(self):
-        '''
-        Returns terminal name
-        '''
-        return self._terminal
+    def setpara(self, input):
+        self.firstparagraph = input
 
-    def setterminal(self, input):
-        '''
-        Sets terminal name
-        Param: input is a string
-        '''
-        self._terminal = input
+    def input_1(self):
+        return self.input1
 
-    def custname(self):
-        '''
-        Returns customer name
-        '''
-        return self._custname
+    def set1(self, input):
+        self.input1 = input
 
-    def setcustomer(self, input):
-        '''
-        Sets customer name
-        Param: input is a string
-        '''
-        self._custname = input
+    def input_2(self):
+        return self.input2
 
-    def entity(self):
-        '''
-        Returns company ownership entity name
-        '''
-        return self._zentity
+    def set2(self, input):
+        self.input2 = input
 
-    def setentity(self, input):
-        '''
-        Sets entity name
-        Param: input is a string, one of ents in Loader's pullentity() method
-        '''
-        self._zentity = input
+    def input_3(self):
+        return self.input3
 
-    def userfield(self):
-        '''
-        Returns user's keyword-searched field
-        '''
-        return self._pullfield
+    def set3(self, input):
+        self.input3 = input
 
-    def setuserfield(self, input):
-        '''
-        Sets user's keyword-searched field
-        Param: input is a string
-        '''
-        self._pullfield = input
-
-    def pagenumber(self):
-        '''
-        Returns page number
-        '''
-        return self._pagenumber
-
-    def setpagenumber(self, input): # assert isdigit
-        '''
-        Sets page number
-        Param: input is a string-converted int
-        '''
-        self._pagenumber = input
-
-    def __init__(self, agr):
-        '''
-        Initializer
-        Param agr: the agreement type, must be 'Multi' or 'Single'
-        '''
-        self._agreementtype = agr
-        self._terminal = None
-        self._custname = None
-        self._zentity = None
-        self._pullfield = None
-        self._pagenumber = None
+    def __init__(self, file):
+        self.filename = file
+        self.firstparagraph = None
+        self.input1 = None
+        self.input2 = None
+        self.input3 = None

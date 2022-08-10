@@ -29,54 +29,65 @@ class ContractFrame(ttk.Frame):
 
         self.font = ('Segoe UI Emoji', 10) # typeface data
 
-        self.loader = Loader(askopenfilename()) # associated Loader object
+        self.loader = Loader() # associated Loader object
         self.reader = self.loader.getreader() # associated Reader object
 
         self.attrs = [] # buttons and entries
 
-        self.guikeyword = tk.StringVar() # StringVars to store text entry values
+        self.keyword1 = tk.StringVar() # StringVars to store text entry values
+        self.keyword2 = tk.StringVar()
+        self.keyword3 = tk.StringVar()
         self.filename = tk.StringVar()
         self.sheetname = tk.StringVar()
 
-        self.keyword_label = ttk.Label(self, text='Keyword')
-        self.keyword_label.grid(column=0, row=1, **padding)        
+        self.keyword1_label = ttk.Label(self, text='Keyword 1')
+        self.keyword1_label.grid(column=0, row=1, **padding)        
 
-        self.keyword_entry = ttk.Entry(self, textvariable=self.guikeyword, width=40)
-        self.keyword_entry.grid(column=1, row=1, columnspan=2, **padding)
-        self.attrs.append(self.keyword_entry)
+        self.keyword1_entry = ttk.Entry(self, textvariable=self.keyword1, width=40)
+        self.keyword1_entry.grid(column=1, row=1, columnspan=2, **padding)
+        self.attrs.append(self.keyword1_entry)
+
+        self.keyword2_label = ttk.Label(self, text='Keyword 2')
+        self.keyword2_label.grid(column=0, row=2, **padding)     
+
+        self.keyword2_entry = ttk.Entry(self, textvariable=self.keyword2, width=40)
+        self.keyword2_entry.grid(column=1, row=2, columnspan=2, **padding)
+        self.attrs.append(self.keyword2_entry)
+
+        self.keyword3_label = ttk.Label(self, text='Keyword 3')
+        self.keyword3_label.grid(column=0, row=3, **padding)     
+
+        self.keyword3_entry = ttk.Entry(self, textvariable=self.keyword3, width=40)
+        self.keyword3_entry.grid(column=1, row=3, columnspan=2, **padding)
+        self.attrs.append(self.keyword3_entry)        
 
         self.file_button = ttk.Button(self, text='Choose Files', width=60,
         command=(lambda: self.ask_conv()))
-        self.file_button.grid(column=0, row=2, columnspan=2, **padding)
+        self.file_button.grid(column=0, row=4, columnspan=2, **padding)
         self.attrs.append(self.file_button)
 
         self.directory_button = ttk.Button(self, text='Choose Directory', width=60,
         command=(lambda: self.ask_dir()))
-        self.directory_button.grid(column=0, row=3, columnspan=2, **padding)
+        self.directory_button.grid(column=0, row=5, columnspan=2, **padding)
         self.attrs.append(self.directory_button)
 
-        self.existing_file_button = ttk.Button(self, text='Choose Existing Spreadsheet', width=60,
-        command=(lambda: self.askforspreadsheet()))
-        self.existing_file_button.grid(column=0, row=4, columnspan=2, **padding)
-        self.attrs.append(self.existing_file_button)
-
         self.excel_file_label = ttk.Label(self, text='Excel File Name')
-        self.excel_file_label.grid(column=0, row=5, **padding)
+        self.excel_file_label.grid(column=0, row=6, **padding)
 
         self.excel_file_entry = ttk.Entry(self, textvariable=self.filename, width=40)
-        self.excel_file_entry.grid(column=1, row=5, columnspan=2, **padding)
+        self.excel_file_entry.grid(column=1, row=6, columnspan=2, **padding)
         self.attrs.append(self.excel_file_entry)
 
         self.excel_sheet_label = ttk.Label(self, text='Excel Sheet Name')
-        self.excel_sheet_label.grid(column=0, row=6, **padding)
+        self.excel_sheet_label.grid(column=0, row=7, **padding)
 
         self.excel_sheet_entry = ttk.Entry(self, textvariable=self.sheetname, width=40)
-        self.excel_sheet_entry.grid(column=1, row=6, columnspan=2, **padding)
+        self.excel_sheet_entry.grid(column=1, row=7, columnspan=2, **padding)
         self.attrs.append(self.excel_sheet_entry)
 
         self.run_button = ttk.Button(self, text='Convert and Load', 
         command=(lambda: self.runit()), width=60)
-        self.run_button.grid(column=0, row=7, columnspan=2, **padding)
+        self.run_button.grid(column=0, row=8, columnspan=2, **padding)
         self.attrs.append(self.run_button)
 
         self.lstyle = ttk.Style()
@@ -101,16 +112,6 @@ class ContractFrame(ttk.Frame):
         '''
         self.reader.setdir(askdirectory())
 
-    def askforspreadsheet(self):
-        '''
-        Opens file dialog and sets user input as the existing Excel spreadsheet
-        '''
-        try:
-            input = askopenfilename()
-            self.loader.setnew(input)
-        except InvalidFileException as e:
-            print(e.with_traceback()) 
-
     def lockout(self):
         '''
         Disables all user-inputted widgets in attrs
@@ -133,12 +134,14 @@ class ContractFrame(ttk.Frame):
         '''
         self.lockout()
 
-        self.reader.setkeyword(self.guikeyword.get())
-        self.loader.setexcelname(self.filename.get())
+        self.reader.setkey1(self.keyword1.get())
+        self.reader.setkey2(self.keyword2.get())
+        self.reader.setkey3(self.keyword3.get())
+        self.loader.setexcelname(self.filename.get()) 
         self.loader.setwstitle(self.sheetname.get())
 
         if self.reader.isready():
-            self.loader.excelinit()
+            self.loader.excelinit(self.keyword1.get(), self.keyword2.get(), self.keyword3.get())
             self.loader.excelload()
             self.loader.savewb()
             self.clear()
@@ -146,7 +149,9 @@ class ContractFrame(ttk.Frame):
         self.restore()
 
     def clear(self):
-        self.guikeyword.set('')
+        self.keyword1.set('')
+        self.keyword2.set('')
+        self.keyword3.set('')
         self.filename.set('')
         self.sheetname.set('')
 
@@ -162,7 +167,7 @@ class ContractApp(tk.Tk):
         super().__init__()
 
         self.title('Contract Parser')
-        self.geometry('440x230')
+        self.geometry('440x260')
         self.resizable(False, False)
         self.configure(background='#F9EF1D')
 

@@ -179,29 +179,32 @@ class Reader:
 
     def pull(self, document, keyword):
         '''
-        Searches for the keyword clause, returns it if found. Extends to the next chunk if
-        the clause is not complete, and does the same if there exists an empty line between
-        the title and the clause.
+        Searches for the keyword clause, returns it if found (returns empty string otherwise). 
+        Extends to the next chunk if the clause is not complete, and does the same if there
+        exists an empty line between the title and the clause.
         Param: document is a string
         Param: keyword is a string
         '''
-        interest = search(keyword, document, IGNORECASE).start()
-        slice = document[interest:]
-        parabreak = slice.find('\n\n')
-        if parabreak != -1:
-            chunk = slice[:parabreak]
-            if chunk.count(' ') < self.min_paragraph_spaces:
-                nextone = slice[parabreak+1].find('\n\n')
-                chunk = slice[:nextone]
-            if chunk[-1] == '.' or chunk[-1] == '\"' or chunk[-1] == chr(8221):
-                chunquito = chunk.strip()
-                return(''.join(chunquito))
-            else:
-                keepgoing = slice[parabreak+1:]
-                parabreak2 = keepgoing.find('\n\n')
-                chunk2 = keepgoing[:parabreak2]
-                chunquito = chunk2.strip()
-                return(''.join(chunquito))
+        try:
+            interest = search(keyword, document, IGNORECASE).start()
+            slice = document[interest:]
+            parabreak = slice.find('\n\n')
+            if parabreak != -1:
+                chunk = slice[:parabreak]
+                if chunk.count(' ') < self.min_paragraph_spaces:
+                    nextone = slice[parabreak+1].find('\n\n')
+                    chunk = slice[:nextone]
+                if chunk[-1] == '.' or chunk[-1] == '\"' or chunk[-1] == chr(8221):
+                    chunquito = chunk.strip()
+                    return(''.join(chunquito))
+                else:
+                    keepgoing = slice[parabreak+1:]
+                    parabreak2 = keepgoing.find('\n\n')
+                    chunk2 = keepgoing[:parabreak2]
+                    chunquito = chunk2.strip()
+                    return(''.join(chunquito))
+        except:
+            return ''
 
     def clear(self):
         '''

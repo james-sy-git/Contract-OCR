@@ -5,11 +5,10 @@ James Sy
 July 27, 2022
 '''
 
-from plistlib import InvalidFileException
 import tkinter as tk
 from tkinter import ttk
 from Loader import Loader
-from tkinter.filedialog import askopenfilename, askopenfilenames, askdirectory
+from tkinter.filedialog import askopenfilenames, askdirectory
 
 class ContractFrame(ttk.Frame):
     '''
@@ -149,6 +148,9 @@ class ContractFrame(ttk.Frame):
         self.restore()
 
     def clear(self):
+        '''
+        Clears StringVars so that the parser can be used again
+        '''
         self.keyword1.set('')
         self.keyword2.set('')
         self.keyword3.set('')

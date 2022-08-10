@@ -10,7 +10,7 @@ try:
     from cv2 import imread, IMREAD_GRAYSCALE
     from glob import glob
     from fitz import open, Matrix
-    from os import path, remove
+    from os import remove
     from re import search, IGNORECASE
 
 except ImportError as i:
@@ -24,8 +24,8 @@ class Reader:
 
     Class attrs:
 
-    att keyword: the user-inputted keyword
-    inv: keyword is a string or None
+    att key1, key2, key3: the user-inputted keywords
+    inv: key1, key2, key3 are a string or None
 
     att files_to_convert: the PDF files to be converted into PNGs and then processed
     inv: files_to_convert is a list of PDF files or None
@@ -41,6 +41,12 @@ class Reader:
 
     att newdoc: the DocData object associated with a PDF
     inv: newdoc is a DocData object or None
+
+    att first_paragraph_trigger: the search word which is the first word of a contract's first paragraph
+    inv: first_paragraph_trigger is a non-empty string
+
+    att min_paragraph_spaces: the number of spaces a string must have to be considered a paragraph
+    inv: min_paragraph_spaces is an integer
     '''
 
     def setkey1(self, keyword):
@@ -106,11 +112,10 @@ class Reader:
 
     def process(self):
         '''
-        Uses Tesseract to extract text from the PNGs in files, then searches
-        for the keyword and entity. Also fills the page number where the keyword
-        clause was found. Removes the just-searched file after every iteration, and
-        stops the loop after the keyword clause was found. Adds each new DocData
-        object to ret.
+        Uses Tesseract to extract text from the PNGs in files, combines them into a large string,
+        then searches for the keywords inputted by the user. Extracts the first paragraph of the doc,
+        and adds everything to a DocData object. Removes the just-searched file after every iteration, 
+        and adds each new DocData object to ret.
         '''
 
         curr = ''
@@ -137,9 +142,8 @@ class Reader:
     def convert(self):
         '''
         Converts each file of files_to_convert from a PDF to a sequence of PNGs
-        by page. Zooms in to achieve better resolution. Pulls the terminal name,
-        agreement type, and customer from the filepath. Saves the PNG images to
-        the specified directory.
+        by page. Zooms in to achieve better resolution. Initializes a DOcData object
+        and stores the file path in it. Saves the PNG images to the specified directory.
         '''
         zoom_x = 2
         zoom_y = 2
@@ -175,8 +179,11 @@ class Reader:
 
     def pull(self, document, keyword):
         '''
-        Searches for the keyword clause, returns it if found
+        Searches for the keyword clause, returns it if found. Extends to the next chunk if
+        the clause is not complete, and does the same if there exists an empty line between
+        the title and the clause.
         Param: document is a string
+        Param: keyword is a string
         '''
         interest = search(keyword, document, IGNORECASE).start()
         slice = document[interest:]
@@ -201,11 +208,16 @@ class Reader:
         Clear method to restore to defaults
         '''
         self.ret = []
-        self.keyword = None
+        self.key1 = None
+        self.key2 = None
+        self.key3 = None
         self.files_to_convert = None
         self.directory = None
 
 class DocData:
+    '''
+    Class to store data pulled from a contract
+    '''
 
     def getfile(self):
         return self.filename

@@ -38,12 +38,8 @@ class Loader:
     att wb: the active Workbook
     inv: wb is a Workbook or None
     '''
-    # Hidden attrs:
 
-    # att new: the name of the existing Excel sheet
-    # inv: new is a string or None
-
-    COLUMN_WIDTH = 22
+    COLUMN_WIDTH = 77
 
     def setexcelname(self, input): # assert isalpha, prevent illegal characters
         '''
@@ -76,7 +72,7 @@ class Loader:
 
     def excelinit(self, header1, header2, header3):
         '''
-        For new workbook, initializes a new spreadsheet and populates it with column titles
+        For new workbook, initializes a new spreadsheet and populates it with column titles, including the user-inputted search queries
         '''
 
         headers = [
@@ -119,19 +115,19 @@ class Loader:
 
                 self.sheet.cell(column=2, row=row_to_use, value=docdata.para()) # B: first paragraph
                 self.sheet['B{}'.format(str(row_to_use))].alignment = Alignment(wrapText=True)
-                self.sheet.column_dimensions['B'].width = 77
+                self.sheet.column_dimensions['B'].width = self.COLUMN_WIDTH
 
                 self.sheet.cell(column=3, row=row_to_use, value=docdata.input_1()) # C: first input
                 self.sheet['C{}'.format(str(row_to_use))].alignment = Alignment(wrapText=True)
-                self.sheet.column_dimensions['C'].width = 77
+                self.sheet.column_dimensions['C'].width = self.COLUMN_WIDTH
 
                 self.sheet.cell(column=4, row=row_to_use, value=docdata.input_2()) # D: second input
                 self.sheet['D{}'.format(str(row_to_use))].alignment = Alignment(wrapText=True)
-                self.sheet.column_dimensions['D'].width = 77
+                self.sheet.column_dimensions['D'].width = self.COLUMN_WIDTH
 
                 self.sheet.cell(column=5, row=row_to_use, value=docdata.input_3()) # E: third input
                 self.sheet['E{}'.format(str(row_to_use))].alignment = Alignment(wrapText=True)
-                self.sheet.column_dimensions['E'].width = 77
+                self.sheet.column_dimensions['E'].width = self.COLUMN_WIDTH
 
     def savewb(self):
         '''

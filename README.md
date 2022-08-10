@@ -37,4 +37,4 @@ v1.2.0 (UR): Added line-break case for company entity name extraction
 
 v1.3.0: Integrated "lock-out" to disable buttons when parser is running
 
-v2.0.0: Added three-clause ("greatest hits") functionality and ability to read clauses between page breaks
+v2.0.0 (UR): Added three-clause ("greatest hits") functionality and ability to read clauses between page breaks

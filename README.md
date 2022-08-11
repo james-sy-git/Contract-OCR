@@ -23,7 +23,9 @@ UX:
 
 1. Choose non-machine readable PDFs from any drive
 2. Enter search queries (titles of clauses to be extracted), as well as their "synonyms"
+3. 
 Note: Only one query is required, the other two are optional!
+
 3. Choose working directory where the file and image processing will
    take place, and also where a new Excel spreadsheet will be written
 4. Enter the file name and sheet name of the new Excel spreadsheet.

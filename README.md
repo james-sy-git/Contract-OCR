@@ -17,7 +17,7 @@ Integrates a Tkinter GUI, packaged using PyInstaller in the final release, for u
 
 Built Kivy GUI as well, uisng kvlang, but Python 3.8 + PyInstaller + Kivy led to incompatibility issues.
 
-Averaged a 10.5 second runtime per document, approx. 0.42 seconds per page.
+Averaged a 21.0 second runtime per document, approx. 0.84 seconds per page (Windows 11, 16GB RAM, 11th Gen Intel Core i7)
 
 UX:
 

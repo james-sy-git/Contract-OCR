@@ -7,11 +7,10 @@ July 27, 2022
 
 try:
     from OCR import Reader
-    from openpyxl import Workbook, load_workbook
+    from openpyxl import Workbook
     from openpyxl.styles import Alignment
     from openpyxl.utils import get_column_letter
     from os.path import exists
-    from plistlib import InvalidFileException
 
 except ImportError as i:
     print(i.msg)
@@ -73,6 +72,8 @@ class Loader:
     def excelinit(self, header1, header2, header3):
         '''
         For new workbook, initializes a new spreadsheet and populates it with column titles, including the user-inputted search queries
+        param header1, header2, header3: header titles
+        inv: header1, header2, header3 are strings, possibly empty
         '''
 
         headers = [

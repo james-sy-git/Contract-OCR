@@ -25,7 +25,7 @@ class Reader:
     Class attrs:
 
     att key1, key2, key3: the user-inputted keywords
-    inv: key1, key2, key3 are a string or None
+    inv: key1, key2, key3 are a list of strings
 
     att files_to_convert: the PDF files to be converted into PNGs and then processed
     inv: files_to_convert is a list of PDF files or None
@@ -54,21 +54,21 @@ class Reader:
         Setter for keyword that turns the input into uppercase
         Param: keyword must be a string
         '''
-        self.key1 = keyword.upper()
+        self.key1 = keyword
 
     def setkey2(self, keyword):
         '''
         Setter for keyword that turns the input into uppercase
         Param: keyword must be a string
         '''
-        self.key2 = keyword.upper()
+        self.key2 = keyword
 
     def setkey3(self, keyword):
         '''
         Setter for keyword that turns the input into uppercase
         Param: keyword must be a string
         '''
-        self.key3 = keyword.upper()
+        self.key3 = keyword
 
     def setfiles(self, files):
         '''
@@ -96,15 +96,15 @@ class Reader:
         Param tesser: the path to tesseract.exe on the user's OS
         '''
         try:
-            self.key1 = None
-            self.key2 = None
-            self.key3 = None
+            self.key1 = []
+            self.key2 = []
+            self.key3 = []
             self.files_to_convert = None
             self.directory = None
             self.ret = []
             self.files = None
             self.newdoc = None
-            self.first_paragraph_trigger = 'this'
+            self.first_paragraph_trigger = ['this']
             self.min_paragraph_spaces = 7
             pytesseract.pytesseract.tesseract_cmd = r'tesseract\\tesseract.exe'
         except OSError as e:
@@ -167,53 +167,52 @@ class Reader:
         '''
         Returns whether or nto the Reader is ready to accept and process documents.
         '''
-        return (self.files_to_convert) != None and \
-            (self.directory) != None and \
-                (self.key1) != '' and \
-                    (self.key1) != None and \
-                        (self.key2) != '' and \
-                            (self.key2) != None and \
-                                (self.key3) != '' and \
-                                    (self.key3) != None
+        return (self.files_to_convert) != None and (self.directory) != None and not \
+                (self.key1 == self.key2 == self.key3 == [])
             
 
     def pull(self, document, keyword):
         '''
-        Searches for the keyword clause, returns it if found (returns empty string otherwise). 
+        Searches for the keyword clause, returns it if found, and searches other keywords in
+        the keyword list if not found. If list is exhausted, returns an empty string.
         Extends to the next chunk if the clause is not complete, and does the same if there
         exists an empty line between the title and the clause.
         Param: document is a string
-        Param: keyword is a string
+        Param: keyword is a list of strings, possibly empty
         '''
-        try:
-            interest = search(keyword, document, IGNORECASE).start()
-            slice = document[interest:]
-            parabreak = slice.find('\n\n')
-            if parabreak != -1:
-                chunk = slice[:parabreak]
-                if chunk.count(' ') < self.min_paragraph_spaces:
-                    nextone = slice[parabreak+1].find('\n\n')
-                    chunk = slice[:nextone]
-                if chunk[-1] == '.' or chunk[-1] == '\"' or chunk[-1] == chr(8221):
-                    chunquito = chunk.strip()
-                    return(''.join(chunquito))
-                else:
-                    keepgoing = slice[parabreak+1:]
-                    parabreak2 = keepgoing.find('\n\n')
-                    chunk2 = keepgoing[:parabreak2]
-                    chunquito = chunk2.strip()
-                    return(''.join(chunquito))
-        except:
-            return ''
+
+        for x in keyword:
+            try:
+                interest = search(x, document, IGNORECASE).start()
+                if document[interest].isupper():
+                    slice = document[interest:]
+                    parabreak = slice.find('\n\n')
+                    if parabreak != -1:
+                        chunk = slice[:parabreak]
+                        if chunk.count(' ') < self.min_paragraph_spaces:
+                            nextone = slice[parabreak+1].find('\n\n')
+                            chunk = slice[:nextone]
+                        if chunk[-1] == '.' or chunk[-1] == '\"' or chunk[-1] == chr(8221):
+                            chunquito = chunk.strip()
+                            return(''.join(chunquito))
+                        else:
+                            keepgoing = slice[parabreak+1:]
+                            parabreak2 = keepgoing.find('\n\n')
+                            chunk2 = keepgoing[:parabreak2]
+                            chunquito = chunk2.strip()
+                            return(''.join(chunquito))
+            except:
+                pass
+        return ''
 
     def clear(self):
         '''
         Clear method to restore to defaults
         '''
         self.ret = []
-        self.key1 = None
-        self.key2 = None
-        self.key3 = None
+        self.key1 = []
+        self.key2 = []
+        self.key3 = []
         self.files_to_convert = None
         self.directory = None
 

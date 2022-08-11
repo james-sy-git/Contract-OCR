@@ -127,15 +127,29 @@ class ContractFrame(ttk.Frame):
             att.config(state=tk.NORMAL)
             self.update()
 
+    def keywordstolist(self, keyword_input):
+        '''
+        Splits the space-delimited keywords into a list of keywords,
+        replaces the underscores with spaces, and returns the new list.
+        param: keyword_input is the string of user-inputted keywords
+        inv: keyword_input is a list of strings, possibly empty
+        '''
+        split_it = keyword_input.split()
+        ret = []
+        for entry in split_it:
+            entry = entry.replace('_', ' ')
+            ret.append(entry)
+        return ret
+
     def runit(self):
         '''
         Checks if the Reader object has its fields filled, and runs the contract parser
         '''
         self.lockout()
 
-        self.reader.setkey1(self.keyword1.get())
-        self.reader.setkey2(self.keyword2.get())
-        self.reader.setkey3(self.keyword3.get())
+        self.reader.setkey1(self.keywordstolist(self.keyword1.get()))
+        self.reader.setkey2(self.keywordstolist(self.keyword2.get()))
+        self.reader.setkey3(self.keywordstolist(self.keyword3.get()))
         self.loader.setexcelname(self.filename.get()) 
         self.loader.setwstitle(self.sheetname.get())
 

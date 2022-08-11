@@ -1,5 +1,8 @@
 # Contract-OCR
 
+James Sy
+Last Updated: August 11, 2022
+
 Optimal character recognition app to perform legal contract parsing.
 
 Created to convert previously scanned (e.g. non-machine readable) contracts, and extract up to 3 clauses of interest, which are then
@@ -41,3 +44,5 @@ v1.3.0: Integrated "lock-out" to disable buttons when parser is running
 v2.0.0 (UR): Added three-clause ("greatest hits") functionality and ability to read clauses between page breaks
 
 v2.1.0 (UR): Implemented "synonym-search", allowing user to enter multiple search keywords for the same information
+
+v2.2.0: FINAL RELEASE; allowed for empty search queries and added checks for Windows-illegal strings

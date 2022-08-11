@@ -1,6 +1,7 @@
 # Contract-OCR
 
 James Sy
+
 Last Updated: August 11, 2022
 
 Optimal character recognition app to perform legal contract parsing.
